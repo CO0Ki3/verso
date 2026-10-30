@@ -231,16 +231,16 @@ describe('parseBlocks', () => {
     it('anything but a whole-statement `import type` or `export type`', () => {
       expect(
         problems(
-          "import { type Equal, type Expect } from 'verso';",
-          'import * as verso from "verso";',
-          "import 'verso';",
-          "export { type Equal } from 'verso';",
-          "export * from 'verso';",
+          "import { type Equal, type Expect } from 'verso-ts';",
+          'import * as verso from "verso-ts";',
+          "import 'verso-ts';",
+          "export { type Equal } from 'verso-ts';",
+          "export * from 'verso-ts';",
         ),
       ).toEqual(
         [1, 2, 3, 4, 5].map(
           (line) =>
-            `${line}: use \`${line < 4 ? 'import' : 'export'} type\` for 'verso': under \`verbatimModuleSyntax\` any other form stays in the JS output`,
+            `${line}: use \`${line < 4 ? 'import' : 'export'} type\` for 'verso-ts': under \`verbatimModuleSyntax\` any other form stays in the JS output`,
         ),
       );
     });
@@ -248,13 +248,15 @@ describe('parseBlocks', () => {
     it('but not type-only declarations, other modules or lookalikes', () => {
       expect(
         problems(
-          "import type { Equal, Expect } from 'verso';",
-          "export type { Equal } from 'verso';",
-          "export type * from 'verso';",
+          "import type { Equal, Expect } from 'verso-ts';",
+          "export type { Equal } from 'verso-ts';",
+          "export type * from 'verso-ts';",
           "import { from } from './verso.ts';",
           "import { type Expect } from './verso.ts';",
           "export const from = 'verso';",
-          "type Lazy = import('verso').Expect<true>;",
+          "type Lazy = import('verso-ts').Expect<true>;",
+          // Another package that happens to share the old name.
+          "import { render } from 'verso';",
           'const text = "import { x } from \'verso\'";',
         ),
       ).toEqual([]);
@@ -264,13 +266,13 @@ describe('parseBlocks', () => {
       expect(
         problems(
           'export enum Color { Red, Green }',
-          "import type { Equal } from 'verso';",
+          "import type { Equal } from 'verso-ts';",
           'export class A {}',
-          "import type { Expect } from 'verso';",
+          "import type { Expect } from 'verso-ts';",
           'export {}',
-          "import type { Extends } from 'verso';",
+          "import type { Extends } from 'verso-ts';",
           'export default A',
-          "export type { GuardOf } from 'verso';",
+          "export type { GuardOf } from 'verso-ts';",
         ),
       ).toEqual([]);
     });

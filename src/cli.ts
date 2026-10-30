@@ -31,7 +31,7 @@ the package's own program and nowhere else.
 
       --dir <dir>       directory that receives both files (default: src)
       --key <key>       key of the package (default: its name in package.json)
-      --standalone      copy the helpers instead of importing them from 'verso'
+      --standalone      copy the helpers instead of importing them from 'verso-ts'
 
   -h, --help            show this help
   -v, --version         show the version

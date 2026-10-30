@@ -363,9 +363,9 @@ declare type _isDate = [
 
     it('helper imports that would survive in JS output', () => {
       const cwd = project({
-        'node_modules/verso/package.json': JSON.stringify({ name: 'verso', types: './index.ts' }),
-        'node_modules/verso/index.ts': helperFile('fixture', true),
-        'src/isDate.ts': `import { type Equal, type Expect, type GuardOf } from 'verso';
+        'node_modules/verso-ts/package.json': JSON.stringify({ name: 'verso-ts', types: './index.ts' }),
+        'node_modules/verso-ts/index.ts': helperFile('fixture', true),
+        'src/isDate.ts': `import { type Equal, type Expect, type GuardOf } from 'verso-ts';
 ${IS_DATE.split('\n').slice(1).join('\n')}
 // @verso isDate
 declare type _isDate = [Expect<Equal<GuardOf<typeof isDate>, Date>>];
@@ -373,7 +373,7 @@ declare type _isDate = [Expect<Equal<GuardOf<typeof isDate>, Date>>];
       });
       const result = verso(cwd);
       expect(result.stdout).toContain(
-        "Problems: 1\n    src/isDate.ts:1  use `import type` for 'verso': under `verbatimModuleSyntax` any other form stays in the JS output",
+        "Problems: 1\n    src/isDate.ts:1  use `import type` for 'verso-ts': under `verbatimModuleSyntax` any other form stays in the JS output",
       );
       expect(result.status).toBe(1);
     });
@@ -553,11 +553,11 @@ describe('verso init', { timeout: 60_000 }, () => {
     expect(readFileSync(join(cwd, 'src/verso.ts'), 'utf8')).toBe(helperFile('@scope/lib', false));
     expect(readFileSync(join(cwd, 'src/verso.env.d.ts'), 'utf8')).toBe(envFile('@scope/lib'));
 
-    // The helper resolves 'verso' like any package; here it is a copy of this repository's entry point.
+    // The helper resolves 'verso-ts' like any package; here it is a copy of this repository's entry point.
     write(cwd, {
       'tsconfig.json': TSCONFIG,
-      'node_modules/verso/package.json': JSON.stringify({ name: 'verso', types: './index.ts' }),
-      'node_modules/verso/index.ts': readFileSync(join(import.meta.dirname, '../src/index.ts'), 'utf8'),
+      'node_modules/verso-ts/package.json': JSON.stringify({ name: 'verso-ts', types: './index.ts' }),
+      'node_modules/verso-ts/index.ts': readFileSync(join(import.meta.dirname, '../src/index.ts'), 'utf8'),
       'src/isDate.ts': IS_DATE_BLOCK,
     });
     expect(verso(cwd).stdout).toBe('1 block: 1 passed, 0 failed · 1 assertion\n');

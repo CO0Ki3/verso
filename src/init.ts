@@ -14,7 +14,7 @@ export type Expect<T extends Gate<${quote(key)}>> = T;
 `;
 
 /**
- * The helper file that blocks import. By default it imports the helpers from 'verso'; `standalone` copies their
+ * The helper file that blocks import. By default it imports the helpers from 'verso-ts'; `standalone` copies their
  * definitions instead, for packages whose sources may import relative paths only.
  */
 export function helperFile(key: string, standalone: boolean): string {
@@ -25,9 +25,9 @@ export function helperFile(key: string, standalone: boolean): string {
     return `${source.slice(0, end + 1)}\n${EXPECT(key)}`;
   }
   return `// In-source type test helpers for this package, made by \`verso init\`. Blocks import them from here.
-import type { Gate } from 'verso';
+import type { Gate } from 'verso-ts';
 
-export type { Equal, Extends, GuardOf, NotEqual, NotExtends } from 'verso';
+export type { Equal, Extends, GuardOf, NotEqual, NotExtends } from 'verso-ts';
 
 ${EXPECT(key)}`;
 }

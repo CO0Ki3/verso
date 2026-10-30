@@ -47,7 +47,7 @@ const EXPECT_ERROR = /^\/[/*]\s*@ts-expect-error\b/;
 const CHECK_PRAGMA = /^\/\/\/?\s*@ts-(no)?check(?=[\s:]|$)/i;
 const SHAPE = 'the marker must be followed by `declare type _name = [ ... ];`';
 const OPENERS: Record<string, string> = { ')': '(', ']': '[', '}': '{' };
-const HELPERS = 'verso';
+const HELPERS = 'verso-ts';
 
 export function parseBlocks(source: string, options: TokenizeOptions = {}): ParsedBlocks {
   const tokens = tokenize(source, options);
@@ -186,7 +186,7 @@ export function parseBlocks(source: string, options: TokenizeOptions = {}): Pars
   }
 
   // Under `verbatimModuleSyntax`, only a whole-statement `import type` or `export type` is erased. Anything else
-  // leaves `import 'verso'` in the JS output, which fails at runtime wherever verso is not installed.
+  // leaves `import 'verso-ts'` in the JS output, which fails at runtime wherever verso-ts is not installed.
   for (let index = 0; index < tokens.length; index++) {
     const keyword = tokens[index]!;
     if (!isWord(keyword, 'import') && !isWord(keyword, 'export')) continue;

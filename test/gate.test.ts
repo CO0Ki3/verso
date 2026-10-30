@@ -26,11 +26,11 @@ describe('enabledKeys', () => {
   it('skips declarations that do not merge with the global interface', () => {
     const block = "interface VersoEnabled { 'local': true }";
     expect(enabledKeys(`export {};\n${block}`)).toEqual([]);
-    expect(enabledKeys(`import type { Gate } from 'verso';\n${block}`)).toEqual([]);
+    expect(enabledKeys(`import type { Gate } from 'verso-ts';\n${block}`)).toEqual([]);
     expect(enabledKeys(`export ${block}`)).toEqual([]);
     expect(enabledKeys(`declare namespace N { ${block} }`)).toEqual([]);
     expect(enabledKeys(`export {};\ndeclare global { ${block} }`)).toEqual(['local']);
-    expect(enabledKeys(`type Lazy = import('verso').Gate<'x'>;\n${block}`)).toEqual(['local']);
+    expect(enabledKeys(`type Lazy = import('verso-ts').Gate<'x'>;\n${block}`)).toEqual(['local']);
   });
 
   it('reads what `verso init` writes', () => {

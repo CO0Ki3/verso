@@ -59,11 +59,11 @@ export type GuardOf<F> = F extends (value: any, ...rest: any[]) => value is infe
 // End of the helpers. `verso init --standalone` copies everything above this line; below are verso's own blocks.
 
 /** `Expect` for verso's own blocks, gated by the key that src/verso.env.d.ts enables. */
-type Expect<T extends Gate<'verso'>> = T;
+type Expect<T extends Gate<'verso-ts'>> = T;
 
 // @verso Gate
 declare type _Gate = [
-  Expect<Equal<Gate<'verso'>, true>>,
+  Expect<Equal<Gate<'verso-ts'>, true>>,
   Expect<Equal<Gate<'a package this program does not enable'>, unknown>>,
 ];
 

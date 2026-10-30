@@ -55,9 +55,11 @@ that they actually test something.
 ## Getting started
 
 ```sh
-pnpm add -D verso
+pnpm add -D verso-ts
 pnpm verso init
 ```
+
+The package is `verso-ts` on npm; the command it installs is `verso`.
 
 `verso init` writes two files into `src` (change it with `--dir`):
 
@@ -66,9 +68,9 @@ pnpm verso init
 - `verso.env.d.ts`, which enables that key. The tsconfig must include it, and nothing may import it.
 
 A package whose sources may only import relative paths can pass `--standalone`, which copies the helper definitions
-into `verso.ts` instead of importing them from `verso`.
+into `verso.ts` instead of importing them from `verso-ts`.
 
-Then write blocks and run `verso`. Install verso as a devDependency: none of it runs or ships with the package.
+Then write blocks and run `verso`. Install `verso-ts` as a devDependency: none of it runs or ships with the package.
 
 ## The gate
 
@@ -105,7 +107,7 @@ verso init [--dir src] [--key <key>] [--standalone]
 | `--verbose`            | also list passing blocks and the TypeScript in use                     |
 | `--dir <dir>`          | `init`: the directory that receives both files (default: `src`)        |
 | `--key <key>`          | `init`: the package's key (default: its name in `package.json`)        |
-| `--standalone`         | `init`: copy the helpers instead of importing them from `verso`        |
+| `--standalone`         | `init`: copy the helpers instead of importing them from `verso-ts`     |
 
 verso runs the project's own `tsc` once (`--noEmit --listFiles --noErrorTruncation`) and assigns each diagnostic to
 the block whose lines it falls on. It scans only the files under the tsconfig's directory, outside `node_modules`.
@@ -177,11 +179,11 @@ enum compares equal to the union of its members, which the identity relation tel
 
 The JavaScript and declaration output of `tsc` 7 and 5.9, tsdown (with its tsgo, oxc and tsc declaration
 generators), rollup-plugin-dts, rolldown, esbuild and Vite library mode contain no block, marker or directive, and
-no declaration reachable from the package's entry points references `verso`. Three things to know:
+no declaration reachable from the package's entry points references `verso-ts`. Three things to know:
 
-- Import from `verso` with a whole-statement `import type` or `export type`, as `verso init` does. Under
-  `verbatimModuleSyntax`, `import { type X } from 'verso'` leaves `import 'verso'` in the JavaScript, which fails
-  wherever verso is not installed. verso reports such imports.
+- Import from `verso-ts` with a whole-statement `import type` or `export type`, as `verso init` does. Under
+  `verbatimModuleSyntax`, `import { type X } from 'verso-ts'` leaves `import 'verso-ts'` in the JavaScript, which
+  fails wherever verso-ts is not installed. verso reports such imports.
 - Source maps that embed sources (`sourcesContent`) contain the blocks, like the rest of the source.
 - Raw `tsc` emit writes the helper file `verso.ts` as an empty module plus its declarations. Nothing references them.
   Bundlers leave them out.
@@ -219,3 +221,7 @@ pnpm test       # unit tests and end-to-end tests against fixture projects
 pnpm check      # all of the above, lint and formatting
 pnpm build      # dist/
 ```
+
+## License
+
+[MIT](LICENSE)

@@ -1,8 +1,27 @@
 {
-  "name": "verso",
-  "version": "0.0.0",
-  "private": true,
+  "name": "verso-ts",
+  "version": "0.1.0",
   "description": "In-source type tests for TypeScript: assertions live beside the code they check and vanish from the build.",
+  "keywords": [
+    "typescript",
+    "types",
+    "type-testing",
+    "type-tests",
+    "in-source-testing",
+    "assertions",
+    "tsc",
+    "testing"
+  ],
+  "homepage": "https://github.com/CO0Ki3/verso#readme",
+  "bugs": {
+    "url": "https://github.com/CO0Ki3/verso/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CO0Ki3/verso.git"
+  },
+  "license": "MIT",
+  "author": "co0ki3 (https://github.com/CO0Ki3)",
   "type": "module",
   "exports": {
     ".": {
@@ -27,6 +46,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "oxlint",
+    "prepublishOnly": "pnpm check && pnpm build",
     "test": "vitest run",
     "verso": "node src/cli.ts"
   },

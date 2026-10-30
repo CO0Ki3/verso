@@ -7,8 +7,8 @@ import { envFile, helperFile } from '../src/init.ts';
 describe('helperFile', () => {
   it('imports the helpers from verso and defines an Expect gated by the key', () => {
     const file = helperFile('@scope/lib', false);
-    expect(file).toContain("import type { Gate } from 'verso';");
-    expect(file).toContain("export type { Equal, Extends, GuardOf, NotEqual, NotExtends } from 'verso';");
+    expect(file).toContain("import type { Gate } from 'verso-ts';");
+    expect(file).toContain("export type { Equal, Extends, GuardOf, NotEqual, NotExtends } from 'verso-ts';");
     expect(file).toContain("export type Expect<T extends Gate<'@scope/lib'>> = T;");
   });
 
