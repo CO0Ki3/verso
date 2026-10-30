@@ -1,6 +1,6 @@
 {
   "name": "verso-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "In-source type tests for TypeScript: assertions live beside the code they check and vanish from the build.",
   "keywords": [
     "typescript",
