@@ -36,7 +36,8 @@
   },
   "files": [
     "dist",
-    "src/index.ts"
+    "src/index.ts",
+    "LLM.md"
   ],
   "engines": {
     "node": ">=22"

@@ -13,8 +13,7 @@ types only, so they cost nothing at runtime, and `npx verso` type-checks the pac
 - Every exported function and generic type alias that you add, or whose signature you change, gets a block in the
   same file, right after its declaration. Update an existing block when you change the signature it pins down on
   purpose.
-- Before you finish, run `npx verso` in the package and fix what it reports. A hook does the same when you stop and
-  sends you back with the list of failing blocks and new exports without a block.
+- Before you finish, run `npx verso` in the package and fix what it reports.
 
 ## Find the package's helpers first
 

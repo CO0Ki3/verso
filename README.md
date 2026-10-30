@@ -127,16 +127,33 @@ type checking; verso then reports the blocks as not checked rather than passed. 
 
 ## Coding agents
 
-The [Claude Code plugin](claude-plugin) makes Claude write blocks without being asked. It teaches the block format
-as a skill, tells Claude which packages of a repository use verso, and before Claude stops, runs verso on the
-packages it changed: a failing block, or an exported function or generic type alias that Claude added without a
-block, sends it back to work.
+The package ships [`LLM.md`](LLM.md), a guide for coding agents: the block format, where a package's helpers come
+from, what to assert for each kind of export, and how to fix a failing block without weakening it.
+
+### Claude Code
+
+The [Claude Code plugin](claude-plugin) makes Claude write blocks without being asked. It carries the guide as a
+skill, tells Claude which packages of a repository use verso, and before Claude stops, runs verso on the packages it
+changed: a failing block, or an exported function or generic type alias that Claude added without a block, sends it
+back to work.
 
 ```
 /plugin install verso --marketplace CO0Ki3/verso
 ```
 
-Other agents and tools can read `verso --json`. Besides the blocks, problems and errors, it lists under `uncovered`
+### Other agents
+
+Point the agent's instructions at the guide that comes with the package, for example in `AGENTS.md`,
+`.cursor/rules` or `.github/copilot-instructions.md`:
+
+```md
+Type tests in this repository are verso blocks. When you add an exported function or generic type alias, or change
+its signature, follow node_modules/verso-ts/LLM.md and run `npx verso` in that package before you finish.
+```
+
+### Tools
+
+`verso --json` prints the result of the check. Besides the blocks, problems and errors, it lists under `uncovered`
 the exported functions and generic type aliases that no block in their file mentions. They never fail the run, so a
 package can adopt verso one function at a time; `--verbose` lists them too.
 
