@@ -1,0 +1,12 @@
+{
+  "name": "verso",
+  "owner": { "name": "co0ki3" },
+  "description": "Claude Code plugins for verso, in-source type tests for TypeScript",
+  "plugins": [
+    {
+      "name": "verso",
+      "source": "./claude-plugin",
+      "description": "Makes Claude write verso in-source type tests in packages that use verso"
+    }
+  ]
+}

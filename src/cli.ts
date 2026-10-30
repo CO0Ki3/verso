@@ -13,18 +13,21 @@ import { parseArgs } from 'node:util';
 import { assign, type SourceFile } from './assign.ts';
 import { parseBlocks } from './blocks.ts';
 import { parseTscOutput, typeCheckRan } from './diagnostics.ts';
+import { findExports, mentions, type Exported } from './exports.ts';
 import { enabledKeys, ENV_FILE, gatedKeys } from './gate.ts';
 import { init } from './init.ts';
-import { formatReport, type ReportedProblem } from './report.ts';
+import { checkResult, formatText, type ReportedProblem } from './report.ts';
+import { lineStarts } from './tokens.ts';
 import { findTsc, runTsc } from './tsc.ts';
 
-const USAGE = `Usage: verso [-p <tsconfig>] [--verbose]
+const USAGE = `Usage: verso [-p <tsconfig>] [--verbose] [--json]
        verso init [--dir <dir>] [--key <key>] [--standalone]
 
 verso type-checks the project with tsc and reports its in-source type tests (// @verso blocks) by name.
 
   -p, --project <path>  tsconfig.json, or a directory holding one (default: tsconfig.json)
-      --verbose         also list passing blocks
+      --verbose         also list passing blocks, and exported functions and generic types without a block
+      --json            print the result as JSON, for tools and coding agents
 
 verso init writes the helper file that blocks import (verso.ts) and verso.env.d.ts, which turns the blocks on in
 the package's own program and nowhere else.
@@ -39,6 +42,8 @@ the package's own program and nowhere else.
 
 /** Files that can hold blocks: TypeScript sources, not declaration files. */
 const SOURCE = /\.(?:[cm]?ts|tsx)$/;
+/** Test files, whose exports need no block. */
+const TEST = /\.(?:test|spec)\.[cm]?tsx?$|(?:^|[\\/])__tests__[\\/]/;
 const DECLARATION = /\.d\.(?:[^\\/]*\.)?[cm]?ts$/;
 const DEPENDENCY = /(?:^|[\\/])node_modules[\\/]/;
 
@@ -51,6 +56,7 @@ function main(args: string[]): number {
       options: {
         project: { type: 'string', short: 'p' },
         verbose: { type: 'boolean', default: false },
+        json: { type: 'boolean', default: false },
         dir: { type: 'string', default: 'src' },
         key: { type: 'string' },
         standalone: { type: 'boolean', default: false },
@@ -89,10 +95,10 @@ function main(args: string[]): number {
     );
     return 0;
   }
-  return check(options.project ?? 'tsconfig.json', options.verbose);
+  return check(options.project ?? 'tsconfig.json', options.verbose, options.json);
 }
 
-function check(projectOption: string, verbose: boolean): number {
+function check(projectOption: string, verbose: boolean, json: boolean): number {
   const cwd = process.cwd();
   let project = resolve(cwd, projectOption);
   if (existsSync(project) && statSync(project).isDirectory()) project = join(project, 'tsconfig.json');
@@ -107,7 +113,9 @@ function check(projectOption: string, verbose: boolean): number {
     process.stderr.write('verso: cannot find TypeScript; add `typescript` to the project\n');
     return 2;
   }
-  if (verbose) process.stdout.write(`TypeScript ${tsc.version} (${relative(cwd, tsc.path) || tsc.path})\n\n`);
+  if (verbose && !json) {
+    process.stdout.write(`TypeScript ${tsc.version} (${relative(cwd, tsc.path) || tsc.path})\n\n`);
+  }
 
   const run = runTsc(tsc, project, cwd);
   const output = parseTscOutput(run.stdout, cwd);
@@ -152,22 +160,30 @@ function check(projectOption: string, verbose: boolean): number {
 
   const files: SourceFile[] = [];
   const gateProblems: ReportedProblem[] = [];
+  const uncovered: (Exported & { file: string })[] = [];
   let scannedFiles = 0;
   for (const path of ownFiles) {
     if (!SOURCE.test(path) || DECLARATION.test(path)) continue;
     scannedFiles++;
     const source = readFileSync(path, 'utf8');
-    if (!source.includes('verso') && !source.includes('Gate')) continue;
-    const { blocks, problems } = parseBlocks(source, { jsx: path.endsWith('.tsx') });
+    const jsx = path.endsWith('.tsx');
+    const { blocks, problems } = parseBlocks(source, { jsx });
     if (blocks.length > 0 || problems.length > 0) files.push({ path, blocks, problems });
-    if (envFiles.length === 0) continue;
-    for (const { key, line } of gatedKeys(source)) {
+    const gated = gatedKeys(source);
+    for (const { key, line } of envFiles.length === 0 ? [] : gated) {
       if (enabled.has(key)) continue;
       gateProblems.push({
         file: path,
         line,
         message: `this \`Expect\` depends on the key '${key}', which no verso.env.d.ts in the program enables, so the blocks using it check nothing`,
       });
+    }
+    // Exports that no block in the same file mentions. Helper files and tests need no blocks.
+    if (gated.length > 0 || TEST.test(path)) continue;
+    const starts = lineStarts(source);
+    const texts = blocks.map((block) => source.slice(starts[block.line - 1], starts[block.endLine] ?? source.length));
+    for (const exported of findExports(source, { jsx })) {
+      if (!texts.some((text) => mentions(text, exported.name))) uncovered.push({ file: path, ...exported });
     }
   }
   files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
@@ -194,19 +210,24 @@ function check(projectOption: string, verbose: boolean): number {
       seen.add(key);
       return true;
     });
-  const report = formatReport({
+  uncovered.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : a.line - b.line));
+  const result = checkResult({
     cwd,
     assignment: assign(files, diagnostics),
     problems,
+    uncovered,
     programFiles: output.files.length,
     scannedFiles,
     typeChecked: typeCheckRan(diagnostics, programFiles),
     unrecognized: [...output.unrecognized, ...run.stderr.split(/\r?\n/).filter((line) => line.trim() !== '')],
-    verbose,
-    color: process.stdout.isTTY === true && !process.env['NO_COLOR'],
   });
-  process.stdout.write(report.text);
-  return report.ok ? 0 : 1;
+  if (json) {
+    process.stdout.write(`${JSON.stringify({ typescript: tsc.version, ...result }, null, 2)}\n`);
+  } else {
+    const color = process.stdout.isTTY === true && !process.env['NO_COLOR'];
+    process.stdout.write(formatText(result, { verbose, color }));
+  }
+  return result.ok ? 0 : 1;
 }
 
 function packageName(dir: string): string | undefined {

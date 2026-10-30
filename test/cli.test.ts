@@ -235,6 +235,61 @@ declare type _empty = [
     expect(result.status).toBe(0);
   });
 
+  it('prints the result as JSON with --json', () => {
+    const cwd = project({
+      'src/isDate.ts': `${IS_DATE}
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+export const KB = 1024;
+
+// @verso isDate
+declare type _isDate = [Expect<Equal<GuardOf<typeof isDate>, string>>];
+`,
+    });
+    const result = verso(cwd, '--json');
+    const json = JSON.parse(result.stdout) as Record<string, unknown>;
+    expect(json).toMatchObject({
+      ok: false,
+      typeChecked: true,
+      blocks: [
+        {
+          file: 'src/isDate.ts',
+          line: 13,
+          endLine: 14,
+          name: 'isDate',
+          assertions: 1,
+          status: 'failed',
+          diagnostics: [{ file: 'src/isDate.ts', line: 14, code: 'TS2344' }],
+        },
+      ],
+      problems: [],
+      outside: [],
+      uncovered: [{ file: 'src/isDate.ts', line: 7, name: 'isString', kind: 'function' }],
+      summary: { blocks: 1, passed: 0, failed: 1, unchecked: 0, assertions: 1 },
+    });
+    expect(json['typescript']).toMatch(/^\d+\.\d+\.\d+/);
+    expect(result.status).toBe(1);
+  });
+
+  it('lists exports without a block with --verbose, without failing on them', () => {
+    const cwd = project({
+      'src/isDate.ts': `${IS_DATE_BLOCK}
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+`,
+      'src/isDate.test.ts': 'export function helper() {}\n',
+    });
+    const quiet = verso(cwd);
+    expect(quiet.stdout).toBe('1 block: 1 passed, 0 failed · 1 assertion\n');
+    expect(quiet.status).toBe(0);
+    const verbose = verso(cwd, '--verbose');
+    expect(verbose.stdout).toContain('Exports without a block: 1\n    src/isDate.ts:10  isString\n');
+    expect(verbose.status).toBe(0);
+  });
+
   it('fails on type errors outside blocks', () => {
     const cwd = project({
       'src/isDate.ts': `${IS_DATE}

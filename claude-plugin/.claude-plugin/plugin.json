@@ -1,0 +1,9 @@
+{
+  "name": "verso",
+  "description": "Makes Claude write verso in-source type tests: the block format as a skill, a note in repositories that use verso, and a check of the changed packages before Claude stops",
+  "version": "0.1.0",
+  "author": { "name": "co0ki3" },
+  "homepage": "https://github.com/CO0Ki3/verso",
+  "repository": "https://github.com/CO0Ki3/verso",
+  "license": "MIT"
+}

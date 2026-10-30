@@ -97,17 +97,18 @@ declarations instead, for example through project references.
 ## Usage
 
 ```sh
-verso [-p tsconfig.json] [--verbose]
+verso [-p tsconfig.json] [--verbose] [--json]
 verso init [--dir src] [--key <key>] [--standalone]
 ```
 
-| Option                 | Meaning                                                                |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `-p, --project <path>` | `tsconfig.json`, or a directory holding one (default: `tsconfig.json`) |
-| `--verbose`            | also list passing blocks and the TypeScript in use                     |
-| `--dir <dir>`          | `init`: the directory that receives both files (default: `src`)        |
-| `--key <key>`          | `init`: the package's key (default: its name in `package.json`)        |
-| `--standalone`         | `init`: copy the helpers instead of importing them from `verso-ts`     |
+| Option                 | Meaning                                                                     |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `-p, --project <path>` | `tsconfig.json`, or a directory holding one (default: `tsconfig.json`)      |
+| `--verbose`            | also list passing blocks, exports without a block and the TypeScript in use |
+| `--json`               | print the result as JSON, for tools and coding agents                       |
+| `--dir <dir>`          | `init`: the directory that receives both files (default: `src`)             |
+| `--key <key>`          | `init`: the package's key (default: its name in `package.json`)             |
+| `--standalone`         | `init`: copy the helpers instead of importing them from `verso-ts`          |
 
 verso runs the project's own `tsc` once (`--noEmit --listFiles --noErrorTruncation`) and assigns each diagnostic to
 the block whose lines it falls on. It scans only the files under the tsconfig's directory, outside `node_modules`.
@@ -123,6 +124,21 @@ Errors outside blocks fail the run, so verso doubles as the project's type check
 because that usually means the wrong tsconfig. When `tsc` finds syntax or compiler option errors, it stops before
 type checking; verso then reports the blocks as not checked rather than passed. For the same reason, verso turns off
 `noCheck` for its run (TypeScript 5.6 and later) and reports a file with blocks under `// @ts-nocheck`.
+
+## Coding agents
+
+The [Claude Code plugin](claude-plugin) makes Claude write blocks without being asked. It teaches the block format
+as a skill, tells Claude which packages of a repository use verso, and before Claude stops, runs verso on the
+packages it changed: a failing block, or an exported function or generic type alias that Claude added without a
+block, sends it back to work.
+
+```
+/plugin install verso --marketplace CO0Ki3/verso
+```
+
+Other agents and tools can read `verso --json`. Besides the blocks, problems and errors, it lists under `uncovered`
+the exported functions and generic type aliases that no block in their file mentions. They never fail the run, so a
+package can adopt verso one function at a time; `--verbose` lists them too.
 
 ## Writing blocks
 
@@ -192,7 +208,9 @@ no declaration reachable from the package's entry points references `verso-ts`. 
 
 - `@ts-expect-error` covers the next line only. If a formatter breaks a long assertion over several lines, the
   error moves away from the directive.
-- `Parameters` and `ReturnType` see the last overload of an overloaded function only.
+- `Parameters` and `ReturnType` see the last overload of an overloaded function only. To pin every overload,
+  compare the function with the whole set of signatures, in declaration order:
+  `Expect<Equal<typeof f, { (a: string): string | undefined; (a: string, b: number): string }>>`.
 - The identity relation behind `Equal` overlooks some differences. A `this` parameter declared on one side only,
   the `const` modifier of a type parameter, `NoInfer`, a method versus a function-valued property, a setter's type
   and the order of an intersection's members do not count, so `Equal<(this: Counter) => void, () => void>` holds.
